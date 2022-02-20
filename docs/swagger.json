@@ -1,0 +1,38 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/version": {
+            "get": {
+                "description": "gets the timestamp, build version, release version, commit, branch, etc from current binary",
+                "summary": "get current version of the app",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.Version"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "http.Version": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "commit": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

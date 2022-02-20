@@ -1,0 +1,24 @@
+definitions:
+  http.Version:
+    properties:
+      branch:
+        type: string
+      commit:
+        type: string
+      version:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /version:
+    get:
+      description: gets the timestamp, build version, release version, commit, branch,
+        etc from current binary
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Version'
+      summary: get current version of the app
+swagger: "2.0"
