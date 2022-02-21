@@ -1,24 +1,26 @@
 package cmd
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zetsub0u/void_archives/http"
 	"github.com/zetsub0u/void_archives/loaders"
 	"github.com/zetsub0u/void_archives/store"
 	"os"
 	"os/signal"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
-	"github.com/zetsub0u/void_archives/http"
+	"time"
 )
 
 var flagHelper viperPFlagHelper
 
 var (
-	addressFlag string
-	portFlag    int
-	inMemFlag   bool
+	addressFlag       string
+	portFlag          int
+	inMemFlag         bool
+	loaderTimerFlag   time.Duration
+	mainChannelIDFlag string
 )
 
 func printSettings() {
@@ -33,10 +35,6 @@ func start() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
-	if err := loaders.Youtube(); err != nil {
-		log.Fatalf("failed loading from youtube: %v", err)
-	}
-
 	// hold the binary version
 	versionObj := http.Version{
 		Version: version,
@@ -48,6 +46,17 @@ func start() {
 	if err := store.LoadDummyData(s); err != nil {
 		log.Fatalf("failed loading dummy data: %v", err)
 	}
+
+	// create the youtube loader
+	ytLoader, err := loaders.NewYoutube(mainChannelIDFlag)
+	if err != nil {
+		log.Fatalf("failed initializing youtube loader: %v", err)
+	}
+
+	// setup the loader loop
+	loader := loaders.NewRunner(s, loaderTimerFlag, ytLoader)
+	go loader.Start()
+
 	// http api server
 	log.Info("cmd: initializing http api")
 	apiConfig := http.ServerConfig{Address: addressFlag, Port: portFlag, Version: versionObj}
@@ -67,6 +76,7 @@ func start() {
 		os.Exit(1)
 	}()
 
+	loader.Stop()
 	apiServer.Stop()
 
 	log.Info("cmd: exiting...")
@@ -85,6 +95,8 @@ func init() {
 
 	// Store flags
 	startCmd.Flags().BoolVarP(&inMemFlag, "in-mem", "m", false, "use in memory storage, for testing")
+	startCmd.Flags().DurationVarP(&loaderTimerFlag, "loader-timer", "t", 10*time.Minute, "how often to run the loaders")
+	startCmd.Flags().StringVarP(&mainChannelIDFlag, "channel-id", "c", "UCLINibmUEYa5PhuBVpyd-7w", "youtube channel id to find subscriptions to poll")
 
 	// Add commands
 	RootCmd.AddCommand(startCmd)
