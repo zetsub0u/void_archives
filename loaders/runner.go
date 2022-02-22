@@ -42,11 +42,22 @@ func (r *Runner) Start() {
 		for _, l := range r.loaders {
 			refs, err := l.GetRecentRefs(5 * time.Minute)
 			if err != nil {
-				log.Errorf("failed getting res for loader: %v", err)
+				log.Errorf("failed getting refs from loader: %v", err)
+				continue
 			}
 			for _, ref := range refs {
+				previous, err := r.archive.GetRef(ref.URL)
+				if err != nil {
+					log.Errorf("failed checking ref exist (%s) on archive: %v", ref.URL, err)
+					continue
+				}
+				// if we got something, it already was loaded, skip adding it
+				if previous != nil {
+					continue
+				}
 				if err := r.archive.AddRef(ref); err != nil {
 					log.Errorf("failed adding ref (%s) to archive: %v", ref.URL, err)
+					continue
 				}
 				loaded += 1
 			}

@@ -11,8 +11,13 @@ func NewInMem() *InMem {
 	return &InMem{data: data}
 }
 
-func (a *InMem) GetRefs() archive.Refs {
-	return a.data
+func (a *InMem) GetRef(refID string) (*archive.Ref, error) {
+	for _, ref := range a.data {
+		if ref.URL == refID {
+			return &ref, nil
+		}
+	}
+	return nil, nil
 }
 
 func (a *InMem) AddRef(ref archive.Ref) error {
@@ -20,8 +25,6 @@ func (a *InMem) AddRef(ref archive.Ref) error {
 	return nil
 }
 
-func (a *InMem) GetRef(ops ...FilterOption) (archive.Refs, error) {
-	f := Filter{}
-	f.applyOpts()
-	return nil, nil
+func (a *InMem) GetRefs(opts ...archive.FilterOption) (archive.Refs, error) {
+	return a.data, nil
 }

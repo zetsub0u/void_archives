@@ -1,4 +1,4 @@
-package store
+package archive
 
 type Filter struct {
 	Creator *string

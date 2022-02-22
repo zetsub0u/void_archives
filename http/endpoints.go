@@ -15,5 +15,9 @@ func (s *Server) GetVersion(c *gin.Context) {
 }
 
 func (s *Server) GetRefs(c *gin.Context) {
-	c.JSON(http.StatusOK, s.archive.GetRefs())
+	refs, err := s.archive.GetRefs()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+	}
+	c.JSON(http.StatusOK, refs)
 }

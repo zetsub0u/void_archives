@@ -11,6 +11,7 @@ type Ref struct {
 type Refs []Ref
 
 type Archive interface {
-	GetRefs() Refs
+	GetRef(refID string) (*Ref, error)
+	GetRefs(opts ...FilterOption) (Refs, error)
 	AddRef(ref Ref) error
 }
